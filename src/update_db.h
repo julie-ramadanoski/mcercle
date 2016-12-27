@@ -19,7 +19,7 @@ class update_db : public QObject
 		bool upgradeToV7(QString *log);
 		bool upgradeToV8(QString *log);
 		bool upgradeToV9(QString *log);
-
+        bool upgradeToV10(QString *log);
 	private:
 		database *m_data;
 

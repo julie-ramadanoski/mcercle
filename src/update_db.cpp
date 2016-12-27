@@ -646,3 +646,38 @@ bool update_db::upgradeToV9(QString *log) {
 
 	return done;
 }
+
+/**
+   Met a jour la base de donnees en version 10
+  */
+bool update_db::upgradeToV10(QString *log) {
+    QString req;
+    bool done=true;
+    QSqlQuery query;
+    *log = tr("Mise a jour de la base de données en version 10:");
+
+    //Ajout champ pour acompte dans bdd
+    req =	"ALTER TABLE TAB_PROPOSALS ADD ACOMPTE FLOAT;";
+    *log += "\n\n"+ req;
+    query.prepare( req );
+    if(!query.exec()) {
+        *log += "\n->" + query.lastError().text();
+        done = false;
+    }
+    else
+        *log += "\n-> FAIT";
+
+
+    //Update numero version bdd
+    req =	"UPDATE TAB_INFORMATIONS SET DBASE_VERSION=10;";
+    *log += "\n\n"+ req;
+    query.prepare( req );
+    if(!query.exec()) {
+        *log += "\n->" + query.lastError().text();
+        done = false;
+    }
+    else
+        *log += "\n-> FAIT";
+
+    return done;
+}

@@ -22,6 +22,7 @@
 #include "dialogprintchoice.h"
 #include "dialogwaiting.h"
 #include "settings.h"
+#include "math.h"
 
 #include <QFileDialog>
 #include <QPrintDialog>
@@ -831,6 +832,30 @@ void Printc::print_reglement(QPainter &painter, QRectF &rect, const QString &typ
     rect = painter.fontMetrics().boundingRect(mLeft, topRect, mwUtil*0.50,0, Qt::AlignLeft, text );
     painter.drawText( rect, text );
 
+    //Liste des accomptes
+    qreal ptSize = mFont.pointSizeF();
+    mFont.setPointSizeF(ptSize-2);
+    painter.setFont(mFont);
+
+    if(type == T_INVOICE) {
+        // Y a til un acompte ?
+        if((m_inv->getPartPayment() >0.0)||(m_inv->getPartPaymentTax() >0.0)) {
+            text = tr("TOTAL des acomptes");
+            if(m_data->getIsTax()) {
+                text += tr("\nHT: ") + m_lang.toString(m_inv->getPartPayment(),'f',2);
+                text += tr("\nTTC: ") + m_lang.toString(m_inv->getPartPaymentTax(),'f',2);
+            } else {
+                text += " : " + m_lang.toString(m_inv->getPartPayment(),'f',2)+"€";
+                text += " soit environ "+m_lang.toString(round(m_inv->getPartPayment()/m_inv->getPrice()*100))+"%"; // prixAcompte/prixTotal*100
+            }
+
+            rect = painter.fontMetrics().boundingRect(mLeft, rect.bottom()+5, mwUtil*0.36 +15,0, Qt::AlignLeft, text);
+            painter.drawText(rect, text);
+        }
+    }
+
+    mFont.setPointSizeF(ptSize); painter.setFont(mFont);
+
     if((typeP == MCERCLE::INTERBANK)||(typeP == MCERCLE::DEBIT)){
         text = tr("Merci de nous fournir un RIB pour ce mode de règlement.");
         rect = painter.fontMetrics().boundingRect(mLeft, rect.bottom()+5, mwUtil*0.50,0, Qt::AlignLeft, text );
@@ -859,35 +884,13 @@ void Printc::print_reglement(QPainter &painter, QRectF &rect, const QString &typ
         painter.drawText(rect, mBankTextID);
 
         painter.setPen( Qt::DashLine );
-        rect = QRect(mLeft,rect.top()-SPACE_BORDER, mwUtil*0.50 +15, rect.height());
+        rect = QRect(mLeft,rect.top()-SPACE_BORDER, mwUtil*0.50 +15, rect.height()+20);
         painter.drawRoundedRect( rect, mRoundedRect, mRoundedRect);
         painter.setPen( Qt::SolidLine );
         //restaure la taille du pen
         //mFont.setPointSizeF(ptSize);
         painter.setFont(mFont);
     }
-    //Liste des accomptes
-    qreal ptSize = mFont.pointSizeF();
-    mFont.setPointSizeF(ptSize-2);
-    painter.setFont(mFont);
-
-    if(type == T_INVOICE) {
-        // Y a til un acompte ?
-        if((m_inv->getPartPayment() >0.0)||(m_inv->getPartPaymentTax() >0.0)) {
-            text = tr("TOTAL des acomptes");
-            if(m_data->getIsTax()) {
-                text += tr("\nHT: ") + m_lang.toString(m_inv->getPartPayment(),'f',2);
-                text += tr("\nTTC: ") + m_lang.toString(m_inv->getPartPaymentTax(),'f',2);
-            }
-            else {
-                text += " : " + m_lang.toString(m_inv->getPartPayment(),'f',2);
-            }
-            rect = painter.fontMetrics().boundingRect(mLeft, rect.bottom()+5, mwUtil*0.36 +15,0, Qt::AlignLeft, text);
-            painter.drawText(rect, text);
-        }
-    }
-
-    mFont.setPointSizeF(ptSize); painter.setFont(mFont);
 }
 
 /**

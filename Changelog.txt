@@ -1,6 +1,16 @@
 # ChangeLog of mcercle
 # Syntaxe:[+ Add] [- Delete] [* Modification/Fix]
-# See more on github : https://github.com/cfdev/mcercle/commits/master
+# See more on github : https://github.com/julie-ramadanoski/mcercle/commits/master
+
+
+version 15.12 : 27/12/2016
+-------------------------------------------------------
++ Printfix cartouche information de paiements
++ Facture Création d'acompte avec un montant
++ Devis acompte défini par un montant
++ Création de facture par devis, demande si un acompte a déjà été versé
++ Database version 10 pour la gestion des acomptes dans le devis
+
 
 version 16.06 : 10/06/2014
 -------------------------------------------------------

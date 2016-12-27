@@ -134,7 +134,7 @@ QString Settings::getTheme(){
  */
 QString Settings::getUrl(){
 	m_settings->beginGroup("main");
-	QString val = m_settings->value("url","https://raw.githubusercontent.com/cfdev/mcercle/master/version.txt").toString();
+    QString val = m_settings->value("url","https://raw.githubusercontent.com/julie-ramadanoski/mcercle/master/version.txt").toString();
 	m_settings->endGroup();
 	return val;
 }
