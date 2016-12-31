@@ -125,7 +125,7 @@ void DialogInvoice::setUI() {
 		ui->pushButton_partInvoice->setVisible(false);
         ui->pushButton_creditInvoice->setVisible(false);
 
-       if(m_proposal->getState() ==  MCERCLE::PROPOSAL_WRITING)  ui->lineEdit_acompte->setVisible(true);
+       if(m_proposal->getState() ==  MCERCLE::PROPOSAL_WRITING || m_proposal->getState() ==  MCERCLE::PROPOSAL_PROPOSED)  ui->lineEdit_acompte->setVisible(true);
 	}
 	else{
 		this->setWindowTitle( tr("Facture") );
@@ -828,7 +828,13 @@ void DialogInvoice::setProposal(unsigned char proc){
 	}
 	m_proposal->setTypePayment(typeP);
 	m_proposal->setPrice( m_totalPrice );
-	m_proposal->setPriceTax( m_totalTaxPrice );
+    m_proposal->setPriceTax( m_totalTaxPrice );
+
+    qDebug() << "CONVERT ACOMPTE" << ui->lineEdit_acompte->text() ;
+    QString acompteInput = ui->lineEdit_acompte->text() ;
+    acompteInput = acompteInput.replace(',','.');
+    qDebug() << "CONVERT ACOMPTEINPUT" << acompteInput;
+
     m_proposal->setAcompte(ui->lineEdit_acompte->text().toFloat() );
 	// suivant le process on modifi ou on ajoute la proposition commerciale
 	if(proc == EDIT) m_proposal->update();
@@ -897,6 +903,21 @@ void DialogInvoice::createSuccess() {
 	Applique les changements au devis/facture
   */
 void DialogInvoice::apply() {
+    if(m_DialogType == PROPOSAL_TYPE){
+    // Vérifier le montant de l'acompte inférieur au montant total
+        if(m_totalTaxPrice - ui->lineEdit_acompte->text().toFloat() < 0){
+            bool ok;
+            double prixAcompte;
+            prixAcompte = QInputDialog::getDouble(this,
+                                              tr("ErreurSaisie"),
+                                              "Le montant de l'acompte ne peut dépasser le total du devis",QLineEdit::Normal,
+                                              0,m_totalTaxPrice,
+                                              1,&ok);
+
+            ui->lineEdit_acompte->setText(m_lang.toString(prixAcompte,'f',2));
+        }
+    }
+    qDebug() << "DEBUG ACOMPTE" << ui->lineEdit_acompte->text();
 	/// Si on est en mode Edition
 	if(m_DialogState == EDIT){
 		QString mess;
@@ -949,6 +970,7 @@ void DialogInvoice::apply() {
 		}
 		this->close();
 	}
+
     emit(calcul_Total());
 }
 
@@ -1021,7 +1043,7 @@ void DialogInvoice::calcul_Total() {
 			m_totalPrice += ui->tableWidget->item(j, COL_TOTAL)->text().toDouble();
             m_totalTaxPrice += ui->tableWidget->item(j, COL_TOTAL)->text().toDouble() + ((ui->tableWidget->item(j, COL_TOTAL)->text().toDouble()*ui->tableWidget->item(j, COL_TAX)->text().toDouble())/100.0);
 		}
-	}
+	}  
 	qDebug() << "m_totalPrice=" << m_totalPrice;
     qDebug() << "m_totalTaxPrice=" << m_totalTaxPrice;
 
@@ -1050,7 +1072,7 @@ void DialogInvoice::calcul_Total() {
 		}
 		val += "<strong>"+ tr("RESTE A PAYER: ") + m_lang.toString(diff,'f',2) + " " + m_data->getCurrency() +" </strong>";
 	} else {
-        if(m_proposal->getState() ==  MCERCLE::PROPOSAL_WRITING ){
+        if(m_proposal->getState() ==  MCERCLE::PROPOSAL_WRITING || m_proposal->getState() ==  MCERCLE::PROPOSAL_PROPOSED){
             ui->lineEdit_acompte->setVisible(true);
             val += "<strong>Choisir un montant d'acompte</strong>";
         }

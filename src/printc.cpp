@@ -141,14 +141,22 @@ void Printc::load_parameters(QPrinter *printer, QPainter &painter) {
 
     database::Bank mb;
     m_data -> getBank(mb);
+    mBankTextID = "";
+    if( mb.codeBanque != "" ){
+        mBankTextID = tr("Code banque: ")+mb.codeBanque+"  "+tr("Code guichet: ")+mb.codeGuichet+'\n';
+        mBankTextID += tr("Compte: ")+mb.numCompte+"  "+tr("Clé RIB: ")+mb.keyRIB+'\n';
+    }
+    if(mb.address != ""){
+        mBankTextID += tr("Domiciliation: ");
+        mBankTextID += mb.address+"\n";
+    }
+    if(mb.IBAN1 != ""){
+        mBankTextID += tr("IBAN: ");
+        mBankTextID += mb.IBAN1+' '+mb.IBAN2+' '+mb.IBAN3+' '+mb.IBAN4+' '+mb.IBAN5+' '+mb.IBAN6+' '+mb.IBAN7+' '+mb.IBAN8+' '+mb.IBAN9+'\n';
+    }
+    if(mb.codeBIC != "")
+        mBankTextID += tr("BIC: ") + mb.codeBIC+'\n';
 
-    mBankTextID = tr("Code banque: ")+mb.codeBanque+"  "+tr("Code guichet: ")+mb.codeGuichet+'\n';
-    mBankTextID += tr("Compte: ")+mb.numCompte+"  "+tr("Clé RIB: ")+mb.keyRIB+'\n';
-    mBankTextID += tr("Domiciliation: ");
-    mBankTextID += mb.address+"\n";
-    mBankTextID += tr("IBAN: ");
-    mBankTextID += mb.IBAN1+' '+mb.IBAN2+' '+mb.IBAN3+' '+mb.IBAN4+' '+mb.IBAN5+' '+mb.IBAN6+' '+mb.IBAN7+' '+mb.IBAN8+' '+mb.IBAN9+'\n';
-    mBankTextID += tr("BIC: ") + mb.codeBIC+'\n';
 
     // Begin !
     painter.begin(printer);
@@ -863,11 +871,16 @@ void Printc::print_reglement(QPainter &painter, QRectF &rect, const QString &typ
     }
 
     //Condition de reglement
+    qDebug() <<"ACOMPTE DEMANDE: "<<  m_pro->getAcompte();
+
     if(type == T_PROPOSAL){
-        text = tr("Conditions de règlement: 30% du montant total lors\nde la signature de cette proposition soit: ");
-        text += m_lang.toString(mtotalTaxPrice * 0.3, 'f', 2) +" "+  m_data->getCurrency();
-        rect = painter.fontMetrics().boundingRect(mLeft, rect.bottom()+5, mwUtil*0.50,0, Qt::AlignLeft, text);
-        painter.drawText( rect, text);
+         if( m_pro->getAcompte() > 0.0 ) {
+             text = tr("Conditions de règlement:\nAcompte demandé de  : ");
+             text += m_lang.toString( m_pro->getAcompte() ) +" "+  m_data->getCurrency() +" lors de la signature\nde cette proposition soit environ : ";
+             text += m_lang.toString(round(m_pro->getAcompte()*100/mtotalTaxPrice)) +"% du montant total";
+             rect = painter.fontMetrics().boundingRect(mLeft, rect.bottom()+5, mwUtil*0.50,0, Qt::AlignLeft, text);
+             painter.drawText( rect, text);
+        }
     }
 
     if(typeP == MCERCLE::TRANSFER){
@@ -875,9 +888,6 @@ void Printc::print_reglement(QPainter &painter, QRectF &rect, const QString &typ
         rect = painter.fontMetrics().boundingRect(mLeft, rect.bottom() + 25, mwUtil*0.50 +15,0, Qt::AlignHCenter, text);
         painter.drawText(rect, text);
 
-
-        qreal ptSize = mFont.pointSizeF();
-        //mFont.setPointSizeF(ptSize-2);
         painter.setFont(mFont);
         rect = painter.fontMetrics().boundingRect(mLeft+SPACE_BORDER, rect.bottom() + 15, mwUtil*0.50 +15,0, Qt::AlignLeft, mBankTextID ); // mwUtil*0.36 +15 => mwUtil*0.50 +15
         rect.setWidth(mwUtil*0.50); //fixe la largeur
