@@ -34,14 +34,19 @@ about::about(database *pdata, QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::about)
 {
-	ui->setupUi(this);
+    ui->setupUi(this);
+    ui->label_don->setVisible(false);
+    ui->label_paypaloptions->setVisible(false);
+    ui->pushButton_don->setVisible(false);
+    ui->pushButton_donFree->setVisible(false);
+    ui->pushButton_donmonthly->setVisible(false);
 
 	QImage ico = QImage(":/app/logo_small");
 	ui->label_ico->setPixmap(QPixmap::fromImage( ico ));
 
 	QString msg = tr("<b>mcercle</b> version ") + MCERCLE::Version +" - "+MCERCLE::CodeName;
 	msg += "<br>"+ tr("Ce programme est un logiciel de gestion pour Artisans et TPE.");
-    msg +="<br>Source libre: <a href=\"https://github.com/cfdev/mcercle\">https://github.com/cfdev/mcercle</a>";
+    msg +="<br>Source libre: <a href=\"https://github.com/julie-ramadanoski/mcercle\">https://github.com/julie-ramadanoski/mcercle</a> - <a href=\"https://github.com/cfdev/mcercle\">Depot original</a>";
 
 	msg += "<br><br>"+ tr("Compilation: ");
 	msg +=  __DATE__ ;
@@ -78,13 +83,13 @@ about::about(database *pdata, QWidget *parent) :
 	}
 
 	msg += tr("- Icons Oxygen du bureau kde. <a href=\"http://www.oxygen-icons.org\">http://www.oxygen-icons.org</a>");
-	msg += "<br><br>"+ tr("Auteur:") + "&#169; 2010-2015";
-	msg += "<br>- Cyril Frausti - D&#233;veloppeur";
-	msg += "<br>- Site internet: <a href=\"http://cfdev.fr/\">http://cfdev.fr/</a>";
+    msg += "<br>"+ tr("<a href=\"http://cfdev.fr/\">Ramadanoski Julie - D&#233;veloppeuse full stack</a>") + "&#169; 2016-2017";
+    msg += "<br>"+ tr("<a href=\"http://cfdev.fr/\">Cyril Frausti - D&#233;veloppeur</a>") + "&#169; 2010-2015";
+
 	
 	msg += "<br><br>Ce programme est fourni &laquo; EN L'ETAT &raquo;, SANS GARANTIE D'AUCUNE SORTE,<br> INCLUANT, SANS S'Y LIMITER, LES GARANTIES D'ABSENCE DE DEFAUT.";
 
-	msg += "<p align=\"center\" style=\"font-size:12px;font-weight:bold;color:#000;background:#B2D42A; \">" + tr(" MCERCLE vous aide dans votre activit&#233;.<br>Aidez moi &agrave; continuer en faisant un don. MERCI") + "</p>";
+    //msg += "<p align=\"center\" style=\"font-size:12px;font-weight:bold;color:#000;background:#B2D42A; \">" + tr(" MCERCLE vous aide dans votre activit&#233;.<br>Aidez moi &agrave; continuer en faisant un don. MERCI") + "</p>";
 
 
 	ui->label_apropos->setText( msg );

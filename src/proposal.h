@@ -19,7 +19,7 @@ private:
 
 	QWidget *m_parent;
 	int m_id, m_idCustomer, m_state, m_delayDeliveryDate;
-	qreal m_price, m_priceTax;
+    qreal m_price, m_priceTax, m_acompte, m_acompteTax;
 	QDateTime m_creationDate;
 	QDate m_userDate, m_deliveryDate, m_validDate;
 	QString m_code, m_InvoiceCode, m_description, m_typePayment;
@@ -40,6 +40,8 @@ public:
 		QStringList description;
 		QList<qreal> price;
 		QList<qreal> priceTax;
+        QList<qreal> acompte;
+        QList<qreal> acompteTax;
 		QList<int> state;
 	}ProposalList;
 
@@ -99,6 +101,8 @@ public:
 	void setIdCustomer(const int& cIdent){m_idCustomer = cIdent;}
 	void setPrice(const qreal& price){m_price = price;}
 	void setPriceTax(const qreal& priceTax){m_priceTax = priceTax;}
+    void setAcompte(const qreal& acompte){m_acompte = acompte;}
+    void setAcompteTax(const qreal& acompteTax){m_priceTax = acompteTax;}
 	void setTypePayment(const QString& type){m_typePayment = type;}
 	void setState(const int& state){m_state = state;}
 	void setCode(const  QString& code){m_code = code;}
@@ -120,6 +124,8 @@ public:
 	int getState(){return m_state;}
 	qreal getPrice(){return m_price;}
 	qreal getPriceTax(){return m_priceTax;}
+    qreal getAcompte(){return m_acompte;}
+    qreal getAcompteTax(){return m_acompteTax;}
 	QDateTime getCreationDate(){return m_creationDate;}
 	QDate getUserDate(){return m_userDate;}
 	QDate getDeliveryDate(){return m_deliveryDate;}

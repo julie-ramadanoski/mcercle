@@ -34,9 +34,9 @@ class Printc : public QObject
 //Largeur en %
 #define WIDTH_DES 0.54
 #define WIDTH_TAX 0.08
-#define WIDTH_DIS 0.07
+#define WIDTH_DIS 0.08
 #define WIDTH_PRI 0.12
-#define WIDTH_QTE 0.07
+#define WIDTH_QTE 0.06
 #define WIDTH_TOT 0.12
 	
 #define WIDTH_TOTAUX 0.375

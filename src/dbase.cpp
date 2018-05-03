@@ -199,6 +199,10 @@ char database::connect(){
 				if(!upDatabase.upgradeToV9(&log)) upgradeOk = false;
 			}
 			logAll += log;
+            if(m_databaseVersion <= 9 ) {
+                if(!upDatabase.upgradeToV10(&log)) upgradeOk = false;
+            }
+            logAll += log;
 
 			QMessageBox mBox(QMessageBox::Information, tr("Information"), mess, QMessageBox::Ok);
 			if(upgradeOk){

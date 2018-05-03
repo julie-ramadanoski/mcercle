@@ -25,6 +25,7 @@
 #include "mctextedit.h"
 #include "dialogtax.h"
 
+#include <QInputDialog>
 #include <QMessageBox>
 #include <QMenu>
 #include <QDebug>
@@ -103,6 +104,7 @@ void DialogInvoice::setUI() {
 	ui -> comboBox_State->clear();
 	ui -> comboBox_TYPE_PAYMENT->clear();
 	ui -> tableWidget->clear();
+    ui->lineEdit_acompte->setVisible(false);
 
 	if(m_DialogType == PROPOSAL_TYPE){
 		this->setWindowTitle( tr("Devis") );
@@ -121,8 +123,9 @@ void DialogInvoice::setUI() {
 		ui->label_link->setText(tr("Facture associée : "));
 		ui->label_partpayment->setVisible(false);
 		ui->pushButton_partInvoice->setVisible(false);
-		ui->pushButton_creditInvoice->setVisible(false);
+        ui->pushButton_creditInvoice->setVisible(false);
 
+       if(m_proposal->getState() ==  MCERCLE::PROPOSAL_WRITING || m_proposal->getState() ==  MCERCLE::PROPOSAL_PROPOSED)  ui->lineEdit_acompte->setVisible(true);
 	}
 	else{
 		this->setWindowTitle( tr("Facture") );
@@ -151,7 +154,7 @@ void DialogInvoice::setUI() {
 		ui->pushButton_ok->setIcon(QIcon(":/app/Edit"));
 		loadValues();
 		if(m_DialogType == PROPOSAL_TYPE) {
-			listProposalDetailsToTable("", "");
+            listProposalDetailsToTable("", "");
 		}
 		else{
 			listInvoiceDetailsToTable("", "");
@@ -164,25 +167,20 @@ void DialogInvoice::setUI() {
 				ui->pushButton_creditInvoice->setEnabled(false);
 			}
 		}
-	}
-	// Sinon c'est une creation !
-	else{
+    } else {// Sinon c'est une creation !
 		//DEVIS
-		if(m_DialogType == PROPOSAL_TYPE)
-			m_proposal->setIdCustomer( m_customer->getId() );
+        if(m_DialogType == PROPOSAL_TYPE) {
+            m_proposal->setIdCustomer( m_customer->getId() );
+            ui->dateEdit_valid->setDateTime( QDateTime::currentDateTime().addMonths(1)); /* 1mois pour la duree du devis*/
 		//FActure
-		else{
+        }else{
 			m_invoice -> setDefault(); // raz la class
-			m_invoice -> setIdCustomer( m_customer->getId() );
+            m_invoice -> setIdCustomer( m_customer->getId() );
+            ui->dateEdit_valid->setDateTime( QDateTime::currentDateTime());
 		}
 		
 		ui->dateEdit_DATE->setDateTime( QDateTime::currentDateTime());
-		ui->dateEdit_payment->setDateTime( QDateTime::currentDateTime());
-
-		if(m_DialogType == PROPOSAL_TYPE)
-			ui->dateEdit_valid->setDateTime( QDateTime::currentDateTime().addMonths(1)); /* 1mois pour la duree du devis*/
-		else
-			ui->dateEdit_valid->setDateTime( QDateTime::currentDateTime());
+		ui->dateEdit_payment->setDateTime( QDateTime::currentDateTime());			
 		
 		ui->pushButton_ok->setText(tr("Ajouter"));
 		ui->pushButton_ok->setIcon(QIcon(":/app/insert"));
@@ -236,6 +234,8 @@ void DialogInvoice::loadValues(){
 		ui->dateTimeEdit->setDateTime( m_proposal->getCreationDate() );
 		ui->dateEdit_DATE->setDate( m_proposal->getUserDate() );
 		ui->dateEdit_valid->setDate(m_proposal->getValidDate());
+        // TODO get acompte s'il existe
+        ui->lineEdit_acompte->setText(m_lang.toString(m_proposal->getAcompte() ) );
 
 		ui->comboBox_State->setCurrentIndex( m_proposal->getState());
 		//Si deja signee et pas associee deja a une facture on autorise la creation dune facture
@@ -264,7 +264,7 @@ void DialogInvoice::loadValues(){
 		if(m_isTax) {
 		ui->label_partpayment->setText(
 					tr("Total acompte(s): ")+
-					tr("\nHT : ")+m_lang.toString(m_invoice->getPartPayment(),'f',2) +
+                    tr("\nHT : ")+m_lang.toString(m_invoice->getPartPayment(),'f',2) +
 					tr("\nTTC: ")+m_lang.toString(m_invoice->getPartPaymentTax(),'f',2) );
 		}
 		else{
@@ -828,7 +828,14 @@ void DialogInvoice::setProposal(unsigned char proc){
 	}
 	m_proposal->setTypePayment(typeP);
 	m_proposal->setPrice( m_totalPrice );
-	m_proposal->setPriceTax( m_totalTaxPrice );
+    m_proposal->setPriceTax( m_totalTaxPrice );
+
+    qDebug() << "CONVERT ACOMPTE" << ui->lineEdit_acompte->text() ;
+    QString acompteInput = ui->lineEdit_acompte->text() ;
+    acompteInput = acompteInput.replace(',','.');
+    qDebug() << "CONVERT ACOMPTEINPUT" << acompteInput;
+
+    m_proposal->setAcompte(ui->lineEdit_acompte->text().toFloat() );
 	// suivant le process on modifi ou on ajoute la proposition commerciale
 	if(proc == EDIT) m_proposal->update();
 	else{
@@ -896,6 +903,21 @@ void DialogInvoice::createSuccess() {
 	Applique les changements au devis/facture
   */
 void DialogInvoice::apply() {
+    if(m_DialogType == PROPOSAL_TYPE){
+    // Vérifier le montant de l'acompte inférieur au montant total
+        if(m_totalTaxPrice - ui->lineEdit_acompte->text().toFloat() < 0){
+            bool ok;
+            double prixAcompte;
+            prixAcompte = QInputDialog::getDouble(this,
+                                              tr("ErreurSaisie"),
+                                              "Le montant de l'acompte ne peut dépasser le total du devis",QLineEdit::Normal,
+                                              0,m_totalTaxPrice,
+                                              1,&ok);
+
+            ui->lineEdit_acompte->setText(m_lang.toString(prixAcompte,'f',2));
+        }
+    }
+    qDebug() << "DEBUG ACOMPTE" << ui->lineEdit_acompte->text();
 	/// Si on est en mode Edition
 	if(m_DialogState == EDIT){
 		QString mess;
@@ -924,8 +946,8 @@ void DialogInvoice::apply() {
 				setInvoice(m_DialogState);
 				//Demande le rafraichissement des listes
 				emit askRefreshInvoiceList();
-			}
-		}//End modif
+			}                    
+		}//End modif        
 	}
 
 	/// Sinon en mode creation
@@ -936,7 +958,7 @@ void DialogInvoice::apply() {
 			// Ajout des articles
 			updateProposalItems();
 			//Demande le rafraichissement des listes
-			emit askRefreshProposalList();
+            emit askRefreshProposalList();
 		}
 		else{
 			// Ajoute la facture
@@ -944,10 +966,12 @@ void DialogInvoice::apply() {
 			// Ajout des articles
 			updateInvoiceItems();
 			//Demande le rafraichissement des listes
-			emit askRefreshInvoiceList();
+            emit askRefreshInvoiceList();
 		}
 		this->close();
 	}
+
+    emit(calcul_Total());
 }
 
 
@@ -1011,17 +1035,17 @@ if((column == COL_PRICE) || (column == COL_TAX) || (column == COL_QUANTITY) || (
   Calcul et Affiche le total
 */
 void DialogInvoice::calcul_Total() {
-	m_totalPrice = m_totalTaxPrice = 0.00;
+    m_totalPrice = m_totalTaxPrice = 0.00;
 	//On parcour le tableau pour savoir si l ID et present
 	for (int j=ui->tableWidget->rowCount()-1; j >= 0; --j){
 		if( (ui->tableWidget->item(j, COL_TOTAL)	!= NULL) &&
 			 (ui->tableWidget->item(j, COL_TAX)		!= NULL)){
 			m_totalPrice += ui->tableWidget->item(j, COL_TOTAL)->text().toDouble();
-			m_totalTaxPrice += ui->tableWidget->item(j, COL_TOTAL)->text().toDouble() + ((ui->tableWidget->item(j, COL_TOTAL)->text().toDouble()*ui->tableWidget->item(j, COL_TAX)->text().toDouble())/100.0);
+            m_totalTaxPrice += ui->tableWidget->item(j, COL_TOTAL)->text().toDouble() + ((ui->tableWidget->item(j, COL_TOTAL)->text().toDouble()*ui->tableWidget->item(j, COL_TAX)->text().toDouble())/100.0);
 		}
-	}
+	}  
 	qDebug() << "m_totalPrice=" << m_totalPrice;
-	qDebug() << "m_totalTaxPrice=" << m_totalTaxPrice;
+    qDebug() << "m_totalTaxPrice=" << m_totalTaxPrice;
 
 
 	//affiche la valeur
@@ -1031,8 +1055,8 @@ void DialogInvoice::calcul_Total() {
 	}
 	else{
 			val = "<div class=\"ac\" style=\"background: #B0E9AE;\"><strong>"+ tr("TOTAL HT: ") + m_lang.toString(m_totalPrice,'f',2) + " " + m_data->getCurrency() +" </strong></div>";
-						val += "<strong>"+ tr("TOTAL TVA: ") + m_lang.toString(m_totalTaxPrice-m_totalPrice,'f',2) + " " + m_data->getCurrency() +" </strong><br>";
-			val += "<strong>"+ tr("TOTAL TTC: ") + m_lang.toString(m_totalTaxPrice,'f',2) + " " + m_data->getCurrency() +" </strong><br>";
+                        val += "<strong>"+ tr("TOTAL TVA: ") + m_lang.toString(m_totalTaxPrice-m_totalPrice,'f',2) + " " + m_data->getCurrency() +" </strong><br>";
+            val += "<strong>"+ tr("TOTAL TTC: ") + m_lang.toString(m_totalTaxPrice,'f',2) + " " + m_data->getCurrency() +" </strong><br>";
 	}
 
 	if(m_DialogType == INVOICE_TYPE){
@@ -1043,14 +1067,20 @@ void DialogInvoice::calcul_Total() {
 			val += "<strong>"+ tr("ACOMPTE: ") + m_lang.toString(m_invoice->getPartPayment(),'f',2) + " " + m_data->getCurrency() +" </strong><br>";
 		}
 		else {
-			diff = m_totalTaxPrice - m_invoice->getPartPaymentTax();
+            diff = m_totalTaxPrice - m_invoice->getPartPaymentTax();
 			val += "<strong>"+ tr("ACOMPTE: ") + m_lang.toString(m_invoice->getPartPaymentTax(),'f',2) + " " + m_data->getCurrency() +" </strong><br>";
 		}
 		val += "<strong>"+ tr("RESTE A PAYER: ") + m_lang.toString(diff,'f',2) + " " + m_data->getCurrency() +" </strong>";
-	}
-	else {
-		val += "<strong>"+ tr("ACOMPTE DE 30%: ") + m_lang.toString(m_totalTaxPrice*0.3,'f',2) + " " + m_data->getCurrency() +" </strong>";
-	}
+	} else {
+        if(m_proposal->getState() ==  MCERCLE::PROPOSAL_WRITING || m_proposal->getState() ==  MCERCLE::PROPOSAL_PROPOSED){
+            ui->lineEdit_acompte->setVisible(true);
+            val += "<strong>Choisir un montant d'acompte</strong>";
+        }
+        else{
+            ui->lineEdit_acompte->setVisible(false);
+            val += "<strong>"+ tr("ACOMPTE : ") + m_lang.toString(m_proposal->getAcompte()) + " " + m_data->getCurrency() +" </strong>";
+        }
+    }
 	ui->label_Total->setText( val );
 }
 
@@ -1211,7 +1241,7 @@ void DialogInvoice::addFreeline_Product() {
   */
 void DialogInvoice::on_pushButton_createInv_clicked()
 {
-	int ret = QMessageBox::warning(this, tr("Attention"), tr("Voulez-vous vraiment créer une facture depuis le devis ?") , QMessageBox::Yes, QMessageBox::No | QMessageBox::Default);
+    int ret = QMessageBox::warning(this, tr("Attention"), tr("Voulez-vous vraiment créer une facture depuis le devis ?") , QMessageBox::Yes, QMessageBox::No | QMessageBox::Default);
 	if(ret == QMessageBox::Yes){
 		createInvoiceFromProposal();
 		this->close();
@@ -1236,9 +1266,16 @@ void DialogInvoice::createInvoiceFromProposal() {
 	m_invoice->setPriceTax( m_proposal->getPriceTax() );
 	m_invoice->setType(MCERCLE::TYPE_INV);
 	m_invoice->setIdRef(0);
-	// creation de la valeur de lacompte
-	m_invoice->setPartPayment( 0 );
-	m_invoice->setPartPaymentTax( 0 );
+    // Création de la valeur d'acompte déjà payée
+    bool ok;
+    float acompteRecu = QInputDialog::getDouble(this,
+                  tr("Combien d'acompte avez-vous déjà reçu ?"),
+                  "€",QLineEdit::Normal,
+                   0,m_totalTaxPrice,
+                   1,&ok);
+
+    m_invoice->setPartPayment(acompteRecu);
+    m_invoice->setPartPaymentTax(acompteRecu);
 
 
 	//cree lobjet avec un nouveau code
@@ -1425,22 +1462,39 @@ void DialogInvoice::on_toolButton_hide_clicked() {
  * @brief creer une facture dacompte
  */
 void DialogInvoice::on_pushButton_partInvoice_clicked(int type) {
-	qDebug() << "type:" << type;
+    qDebug() << "type:" << type;
+    bool ok;
+    double prixAcompte = 0;
+
 	int ret = QMessageBox::information(this, tr("Attention"),
 				tr("Voulez-vous créer une facture d'acompte? "),
 				QMessageBox::Yes, QMessageBox::No | QMessageBox::Default);
 
-	if(ret == QMessageBox::Yes){
+    if(ret == QMessageBox::Yes){
 		// Avertissement si un acompte existe déja
 		if(m_invoice->isTypeExiste( MCERCLE::TYPE_PART )) {
 			ret = QMessageBox::warning(this, tr("Attention"),
 							tr("Un acompte existe déja sur cette facture\n\nVoulez-vous en créer un nouveau? "),
-							QMessageBox::Yes, QMessageBox::No | QMessageBox::Default);
+                            QMessageBox::Yes, QMessageBox::No | QMessageBox::Default);
+            if(ret == QMessageBox::Yes){
+                prixAcompte = QInputDialog::getDouble(this,
+                                                  tr("Quel somme ?"),
+                                                  "€",QLineEdit::Normal,
+                                                  0,m_totalTaxPrice,
+                                                  1,&ok);
+            }
 
 			if(ret == QMessageBox::No){
 				return;
 			}
-		}
+        // Sinon demander tout de même le montant de l'acompte
+        } else {
+            prixAcompte = QInputDialog::getDouble(this,
+                                                  tr("Quel somme ?"),
+                                                  "€",QLineEdit::Normal,
+                                                  0,m_totalTaxPrice,
+                                                  1,&ok);
+        }
 
 		//Choix de la tax
 		qreal mtax;
@@ -1458,9 +1512,11 @@ void DialogInvoice::on_pushButton_partInvoice_clicked(int type) {
 		m_invoice->setPaymentDate( QDate::currentDate() );
 		m_invoice->setLimitPayment( QDate::currentDate() );
 		m_invoice->setTypePayment( m_invoice->getTypePayment() );
-		m_invoice->setPrice( m_totalTaxPrice*0.3 / ( 1+ mtax/100.0) );
-		m_invoice->setPriceTax( m_totalTaxPrice*0.3);/* 30% acompte */
-		m_invoice->setPartPayment(0);
+        // m_invoice->setPrice( m_totalTaxPrice*0.3 / ( 1+ mtax/100.0) );
+        // m_invoice->setPriceTax( m_totalTaxPrice*0.3);/* 30% acompte */
+        m_invoice->setPrice( prixAcompte / ( 1+ mtax/100.0) );
+        m_invoice->setPriceTax(prixAcompte);
+        m_invoice->setPartPayment(0);
 		m_invoice->setPartPaymentTax(0);
 
 		//cree lobjet avec un nouveau code

@@ -30,7 +30,7 @@
 proposal::proposal(QSqlDatabase db, QWidget *parent): m_parent(parent) {
 	m_db = db;
 
-	m_id = m_idCustomer = m_state = m_delayDeliveryDate = m_price =0;
+    m_id = m_idCustomer = m_state = m_delayDeliveryDate = m_price = m_acompte = 0;
 
 }
 
@@ -72,7 +72,7 @@ bool proposal::create() {
 	// Construction de la requette
 	// Si le charactere speciaux "\'" existe on l'adapte pour la requette
 	QString f;
-	QString req = "INSERT INTO TAB_PROPOSALS(CREATIONDATE, ID_CUSTOMER, CODE, DATE, VALIDDATE, DELIVERYDATE, DELAY_DELIVERYDATE, TYPE_PAYMENT, PRICE, PRICE_TAX, STATE, DESCRIPTION) ";
+    QString req = "INSERT INTO TAB_PROPOSALS(CREATIONDATE, ID_CUSTOMER, CODE, DATE, VALIDDATE, DELIVERYDATE, DELAY_DELIVERYDATE, TYPE_PAYMENT, PRICE, PRICE_TAX, ACOMPTE, STATE, DESCRIPTION) ";
 	req += "VALUES(";
 	req += "'" + QDateTime::currentDateTime().toString(tr("yyyy/MM/dd-HH:mm:ss")) + "',";
 	req += "'" + QString::number(m_idCustomer) + "',";
@@ -84,6 +84,7 @@ bool proposal::create() {
 	req += "'" + m_typePayment + "',";
 	req += "'" + f.setNum(m_price,'f',2) + "',";
 	req += "'" + f.setNum(m_priceTax,'f',2) + "',";
+    req += "'" + f.setNum(m_acompte,'f',2) + "',";
 	req += "'" + QString::number(m_state)  + "',";
 	req += "'" + m_description.replace("\'","''") + "');";
 
@@ -116,6 +117,7 @@ bool proposal::update() {
 	req += "TYPE_PAYMENT='" + m_typePayment + "',";
 	req += "PRICE='" + f.setNum(m_price,'f',2) + "',";
 	req += "PRICE_TAX='" + f.setNum(m_priceTax,'f',2) + "',";
+    req += "ACOMPTE='" + f.setNum(m_acompte,'f',2) + "',";
 	req += "STATE='" + QString::number(m_state)  + "',";
 	req += "DESCRIPTION='" + m_description.replace("\'","''") + "' ";
 	req += "WHERE ID='"+ QString::number(m_id) +"';";
@@ -169,7 +171,7 @@ bool proposal::remove(){
 bool proposal::loadFromID(const int& id)
 {
 	QString req = "SELECT TAB_PROPOSALS.ID, TAB_PROPOSALS.ID_CUSTOMER, TAB_PROPOSALS.CREATIONDATE, TAB_PROPOSALS.DATE, TAB_PROPOSALS.VALIDDATE, TAB_PROPOSALS.DELIVERYDATE, TAB_PROPOSALS.DELAY_DELIVERYDATE, "
-			"TAB_PROPOSALS.CODE AS PCODE, TAB_INVOICES.CODE AS ICODE, TAB_PROPOSALS.TYPE_PAYMENT, TAB_PROPOSALS.DESCRIPTION, TAB_PROPOSALS.PRICE, TAB_PROPOSALS.PRICE_TAX, TAB_PROPOSALS.STATE "
+            "TAB_PROPOSALS.CODE AS PCODE, TAB_INVOICES.CODE AS ICODE, TAB_PROPOSALS.TYPE_PAYMENT, TAB_PROPOSALS.DESCRIPTION, TAB_PROPOSALS.PRICE, TAB_PROPOSALS.PRICE_TAX, TAB_PROPOSALS.ACOMPTE, TAB_PROPOSALS.STATE "
 			"FROM TAB_PROPOSALS "
 			"LEFT OUTER JOIN TAB_LINK_PROPOSALS_INVOICES "
 			"ON TAB_PROPOSALS.ID = TAB_LINK_PROPOSALS_INVOICES.ID_PROPOSAL "
@@ -193,6 +195,7 @@ bool proposal::loadFromID(const int& id)
 		m_typePayment = query.value(query.record().indexOf("TYPE_PAYMENT")).toString();
 		m_price = query.value(query.record().indexOf("PRICE")).toFloat();
 		m_priceTax = query.value(query.record().indexOf("PRICE_TAX")).toFloat();
+        m_acompte = query.value(query.record().indexOf("ACOMPTE")).toFloat();
 		m_description = query.value(query.record().indexOf("DESCRIPTION")).toString();
 		m_state = query.value(query.record().indexOf("STATE")).toInt();
 		return true;
@@ -215,7 +218,7 @@ bool proposal::loadFromCode(const QString& code)
 	IBPP::Timestamp dateCrea;
 	IBPP::Date udate;*/
 	QString req = "SELECT TAB_PROPOSALS.ID, TAB_PROPOSALS.ID_CUSTOMER, TAB_PROPOSALS.CREATIONDATE, TAB_PROPOSALS.DATE, TAB_PROPOSALS.VALIDDATE, TAB_PROPOSALS.DELIVERYDATE, TAB_PROPOSALS.DELAY_DELIVERYDATE, "
-			"TAB_PROPOSALS.CODE AS PCODE, TAB_INVOICES.CODE AS ICODE, TAB_PROPOSALS.TYPE_PAYMENT, TAB_PROPOSALS.DESCRIPTION, TAB_PROPOSALS.PRICE, TAB_PROPOSALS.PRICE_TAX, TAB_PROPOSALS.STATE "
+            "TAB_PROPOSALS.CODE AS PCODE, TAB_INVOICES.CODE AS ICODE, TAB_PROPOSALS.TYPE_PAYMENT, TAB_PROPOSALS.DESCRIPTION, TAB_PROPOSALS.PRICE, TAB_PROPOSALS.PRICE_TAX, TAB_PROPOSALS.ACOMPTE, TAB_PROPOSALS.STATE "
 			"FROM TAB_PROPOSALS "
 			"LEFT OUTER JOIN TAB_LINK_PROPOSALS_INVOICES "
 			"ON TAB_PROPOSALS.ID = TAB_LINK_PROPOSALS_INVOICES.ID_PROPOSAL "
@@ -239,6 +242,7 @@ bool proposal::loadFromCode(const QString& code)
 		m_typePayment = query.value(query.record().indexOf("TYPE_PAYMENT")).toString();
 		m_price = query.value(query.record().indexOf("PRICE")).toFloat();
 		m_priceTax = query.value(query.record().indexOf("PRICE_TAX")).toFloat();
+        m_acompte = query.value(query.record().indexOf("ACOMPTE")).toFloat();
 		m_description = query.value(query.record().indexOf("DESCRIPTION")).toString();
 		m_state = query.value(query.record().indexOf("STATE")).toInt();
 		return true;

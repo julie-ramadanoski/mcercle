@@ -171,6 +171,7 @@ void MainWindow::init(){
 	ui->verticalLayout->update();
 
 	// test os version
+    ui->action_don->setVisible(false);
 #ifdef __WIN32
 	ui->action_don->setVisible(false);
 	trymcercle mtry;

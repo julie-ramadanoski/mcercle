@@ -479,6 +479,16 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QLineEdit" name="lineEdit_acompte">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
