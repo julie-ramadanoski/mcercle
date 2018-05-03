@@ -1,5 +1,5 @@
 [version]
-num=16.07
+num=18.04
 link=https://github.com/julie-ramadanoski/mcercle
 linkChangeLog=https://raw.githubusercontent.com/julie-ramadanoski/mcercle/master/Changelog.txt
 

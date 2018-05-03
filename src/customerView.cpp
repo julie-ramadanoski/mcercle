@@ -749,6 +749,7 @@ void customerView::listInvoicesToTable(QString filter, QString field)
 		ItemOfTable *item_PRICE        = new ItemOfTable();
 		ItemOfTable *item_PRICE_TAX    = new ItemOfTable();
 		ItemOfTable *item_PARTPAYMENT  = new ItemOfTable();
+		ItemOfTable *item_PAYMENTDATE  = new ItemOfTable();
 		ItemOfTable *item_DESCRIPTION  = new ItemOfTable();
 		ItemOfTable *item_STATE        = new ItemOfTable();
 
@@ -762,6 +763,7 @@ void customerView::listInvoicesToTable(QString filter, QString field)
 		}
 		else {
 			item_PARTPAYMENT->setData(Qt::DisplayRole, ilist.part_payment.at(i));
+			item_PAYMENTDATE->setData(Qt::DisplayRole, ilist.paymentdate.at(i));
 		}
 		item_DESCRIPTION->setData(Qt::DisplayRole, ilist.description.at(i));
 		item_STATE->setIcon( m_data->m_customer->m_invoice->getIconState(ilist.state.at(i)) );
@@ -779,6 +781,7 @@ void customerView::listInvoicesToTable(QString filter, QString field)
 		ui->tableWidget_Invoices->setItem(i, 5, item_PARTPAYMENT);
 		ui->tableWidget_Invoices->setItem(i, 6, item_DESCRIPTION);
 		ui->tableWidget_Invoices->setItem(i, 7, item_STATE);
+		ui->tableWidget_Invoices->setItem(i, 8, item_PAYMENTDATE);
 	}
 	ui->tableWidget_Invoices->setSortingEnabled(true);
 	ui->tableWidget_Invoices->selectRow(0);
