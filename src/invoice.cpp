@@ -438,7 +438,7 @@ bool invoice::getInvoiceList(InvoiceList& list, int id_customer, QString order, 
 bool invoice::getInvoices(InvoicesBook& list, QString year, QString month) {
 
 	QString effective_date;
-	if(getCaType() == 1)
+	if(getCaType() == 0)
 		effective_date = "PAYMENTDATE";
 	else
 		effective_date = "DATE";
@@ -720,7 +720,7 @@ QStringList invoice::getYearsList() {
 	QStringList ylist;
 	QString req;
 	QString effective_date;
-	if(getCaType() == 1)
+	if(getCaType() == 0)
 		effective_date = "PAYMENTDATE";
 	else
 		effective_date = "DATE";
@@ -754,7 +754,7 @@ qreal invoice::getYearRevenue(QString year) {
 	if(year.isEmpty())return 0;
 	QString req;
 	QString effective_date;
-	if(getCaType() == 1)
+	if(getCaType() == 0)
 		effective_date = "PAYMENTDATE";
 	else
 		effective_date = "DATE";
@@ -793,7 +793,7 @@ qreal invoice::getYearRevenueTAX(QString year) {
 	if(year.isEmpty())return 0;
 	QString req;
 	QString effective_date;
-	if(getCaType() == 1)
+	if(getCaType() == 0)
 		effective_date = "PAYMENTDATE";
 	else
 		effective_date = "DATE";
@@ -832,7 +832,7 @@ qreal invoice::getMonthRevenue(QString year, QString month) {
 	if(year.isEmpty() | month.isEmpty())return 0;
 	QString req;
 	QString effective_date;
-	if(getCaType() == 1)
+	if(getCaType() == 0)
 		effective_date = "PAYMENTDATE";
 	else
 		effective_date = "DATE";
@@ -954,7 +954,7 @@ int invoice::count(int id_customer) {
 QList<int> invoice::listofID_Invoices(QString year, QString month) {
 	QList<int> idList;
 	QString effective_date;
-	if(getCaType() == 1)
+	if(getCaType() == 0)
 		effective_date = "PAYMENTDATE";
 	else
 		effective_date = "DATE";
