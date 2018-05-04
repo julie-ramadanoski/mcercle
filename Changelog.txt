@@ -6,7 +6,6 @@
 version 18.04 : 03/05/2018
 -------------------------------------------------------
 + fix_invoice changer calcul de date des factures pour listing (tva/nonTva)
-+ ajouter date de règlement dans liste du livre des recettes
 
 
 version 15.12 : 27/12/2016
